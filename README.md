@@ -32,15 +32,6 @@ This is a Node.js/Express backend application with user management functionality
    npm install
    ```
 
-3. **Set up environment variables**
-   Create a `.env` file in the root directory:
-
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/your_database"
-   JWT_SECRET="your-super-secret-jwt-key"
-   PORT=3000
-   ```
-
 4. **Set up the database**
 
    ```bash
