@@ -6,7 +6,9 @@ const seedAdminUser = async () => {
   try {
     // Check if any admin user already exists
     const existingAdmin = await prisma.user.findFirst({
-      where: { role: 'admin' }
+      where: { 
+        role: 'admin' 
+      }
     });
 
     if (existingAdmin) {
