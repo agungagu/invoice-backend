@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String     @id @default(uuid())
+  name       String
+  email      String     @unique
+  password   String
+  role       String     @default("user") // "admin" or "user"
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  Invoice    Invoice[]
+  StockIn    StockIn[]
+  StockOut   StockOut[]
+}
+
+model Product {
+  id          String        @id @default(uuid())
+  name        String
+  code        String        @unique
+  size        String
+  price       Int
+  stock       Int
+  imageUrl    String
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  InvouceItem InvouceItem[]
+  StockIn     StockIn[]
+  StockOut    StockOut[]
+}
+
+model Customer {
+  id         String    @id @default(uuid())
+  name       String
+  phone      String
+  address    String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  Invoice    Invoice[]
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  invoiceCode String        @unique
+  customerId  String
+  userId      String
+  date        DateTime
+  total       Int
+  discount    Int
+  tax         Int
+  grandTotal  Int
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  InvouceItem InvouceItem[]
+}
+
+model InvouceItem {
+  id         String   @id @default(uuid())
+  invoiceId  String
+  productId  String
+  quantity   Int
+  price      Int
+  subtotal   Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+model StockIn {
+  id         String   @id @default(uuid())
+  productId  String
+  userId     String
+  quantity   Int
+  supplier   String?
+  reference  String? // Purchase order, delivery note, etc.
+  notes      String?
+  date       DateTime @default(now())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model StockOut {
+  id         String   @id @default(uuid())
+  productId  String
+  userId     String
+  quantity   Int
+  reason     String? // Sale, damage, adjustment, etc.
+  reference  String? // Invoice number, adjustment note, etc.
+  notes      String?
+  date       DateTime @default(now())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
