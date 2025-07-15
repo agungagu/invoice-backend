@@ -2,12 +2,12 @@ const express = require('express');
 const stockIn = require('../controllers/stockIn');
 const stockOut = require('../controllers/stockOut');
 const getStockHistory = require('../controllers/getStockHistory');
-const stock_router = express.Router();
+const router = express.Router();
 
-const verifyToken = require('../../../utils/jesonWebToken');
+const { authenticateToken } = require('../../../middlewares/auth');
 
-stock_router.post('/stock-in', verifyToken, stockIn);
-stock_router.post('/stock-out', verifyToken, stockOut);
-stock_router.get('/stock-history/:productId', verifyToken, getStockHistory);
+router.post('/stock-in', authenticateToken, stockIn);
+router.post('/stock-out', authenticateToken, stockOut);
+router.get('/stock-history/:productId', authenticateToken, getStockHistory);
 
-module.exports = stock_router;
+module.exports = router;
