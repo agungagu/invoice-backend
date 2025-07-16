@@ -45,7 +45,7 @@ model Product {
 model Customer {
   id         String    @id @default(uuid())
   name       String
-  phone      String
+  phone      String    @unique
   address    String
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
