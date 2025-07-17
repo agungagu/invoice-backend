@@ -4,7 +4,7 @@ const { authenticateToken } = require('../../../middlewares/auth');
 
 const createCustomer = require('../controllers/createCustomer');
 const getAllCustomers = require('../controllers/getAllCustomer');   
-const getCustomerById = require('../controllers/getCustomerById');
+const getCustomerById = require('../controllers/getCustomerByID');
 const updateCustomer = require('../controllers/updateCustomer');
 const deleteCustomer = require('../controllers/deleteCustomer');
 
