@@ -13,6 +13,18 @@ module.exports = async (req, res) => {
 
     const { invoiceCode, customerId, userId, date, total, discount, tax, grandTotal, items } = req.body;
 
+    // Validasi stok cukup sebelum create invoice
+    for (const item of items) {
+      const product = await prisma.product.findUnique({ where: { id: item.productId } });
+      if (!product || product.stock < item.quantity) {
+        return res.status(400).json({
+          status: 'error',
+          message: `Stok untuk produk "${product?.name || 'Unknown'}" tidak mencukupi`
+        });
+      }
+    }
+
+    // Buat invoice dan invoice item
     const invoice = await prisma.invoice.create({
       data: {
         invoiceCode,
@@ -35,9 +47,22 @@ module.exports = async (req, res) => {
       include: { InvoiceItem: true }
     });
 
-    res.status(201).json({ status: 'success', data: invoice });
+    // Kurangi stok produk
+    await Promise.all(items.map(item => {
+      return prisma.product.update({
+        where: { id: item.productId },
+        data: {
+          stock: {
+            decrement: item.quantity
+          }
+        }
+      });
+    }));
+
+    return res.status(201).json({ status: 'success', data: invoice });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 'error', message: error.message });
+    return res.status(500).json({ status: 'error', message: error.message });
   }
 };
