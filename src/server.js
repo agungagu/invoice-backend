@@ -9,6 +9,7 @@ const product_router = require('./features/product/routes/productRoutes');
 const stock_router = require('./features/stock/routes/stockRoutes');
 const customer_router = require('./features/customer/routes/customerRoutes');
 const invoice_router = require('./features/invoice/routes/invoiceRoutes');
+const report_router = require('./features/reports/routes/reportRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ app.use('/api/product', product_router);
 app.use('/api/stock', stock_router);
 app.use('/api/customer', customer_router);
 app.use('/api/invoice', invoice_router);
+app.use('/api/reports', report_router);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
