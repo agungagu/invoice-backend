@@ -1,68 +1,68 @@
 const prisma = require('../../../services/prisma');
-const { createInvoiceSchema } = require('../schema/createInvoiceSchema');
+const { v4: uuidv4 } = require("uuid");
 
 module.exports = async (req, res) => {
   try {
-    const { error } = createInvoiceSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ 
-        status: 'error', 
-        message: error.message 
-      });
+    const { customerId, userId, items } = req.body;
+
+    if (!customerId || !userId || !items || items.length === 0) {
+      return res.status(400).json({ message: "Missing required fields." });
     }
 
-    const { invoiceCode, customerId, userId, date, total, discount, tax, grandTotal, items } = req.body;
+    // Generate invoiceCode secara otomatis (misalnya INV-00001)
+    const lastInvoice = await prisma.invoice.findFirst({
+      orderBy: { created_at: "desc" },
+    });
 
-    // Validasi stok cukup sebelum create invoice
-    for (const item of items) {
-      const product = await prisma.product.findUnique({ where: { id: item.productId } });
-      if (!product || product.stock < item.quantity) {
-        return res.status(400).json({
-          status: 'error',
-          message: `Stok untuk produk "${product?.name || 'Unknown'}" tidak mencukupi`
+    const nextNumber = lastInvoice
+      ? parseInt(lastInvoice.invoiceCode.split("-")[1]) + 1
+      : 1;
+    const invoiceCode = `INV-${nextNumber.toString().padStart(5, "0")}`;
+
+    // Ambil harga produk dan hitung subtotal tiap item
+    const enrichedItems = await Promise.all(
+      items.map(async (item) => {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
         });
-      }
-    }
+        if (!product) throw new Error(`Product not found: ${item.productId}`);
+        const subtotal = product.price * item.quantity;
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          price: product.price,
+          subtotal,
+        };
+      })
+    );
 
-    // Buat invoice dan invoice item
+    const total = enrichedItems.reduce((acc, item) => acc + item.subtotal, 0);
+    const grandTotal = total; // bisa tambahkan diskon/pajak jika perlu
+
+    // Simpan invoice dan itemnya
     const invoice = await prisma.invoice.create({
       data: {
+        id: uuidv4(),
         invoiceCode,
         customerId,
         userId,
-        date: new Date(date),
         total,
-        discount,
-        tax,
         grandTotal,
-        InvoiceItem: {
-          create: items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-            subtotal: item.subtotal,
-          }))
-        }
+        date: new Date(),
+        InvoiceItems: {
+          createMany: {
+            data: enrichedItems,
+          },
+        },
       },
-      include: { InvoiceItem: true }
+      include: {
+        InvoiceItems: true,
+      },
     });
 
-    // Kurangi stok produk
-    await Promise.all(items.map(item => {
-      return prisma.product.update({
-        where: { id: item.productId },
-        data: {
-          stock: {
-            decrement: item.quantity
-          }
-        }
-      });
-    }));
-
-    return res.status(201).json({ status: 'success', data: invoice });
-
+    res.status(201).json({ message: "Invoice created", data: invoice });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error("Gagal membuat invoice:", error);
+    res.status(500).json({ message: "Gagal membuat invoice", error: error.message });
   }
 };

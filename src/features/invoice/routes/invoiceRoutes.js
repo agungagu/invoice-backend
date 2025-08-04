@@ -7,9 +7,11 @@ const getInvoiceById = require('../controllers/getInvoiceById');
 const updateInvoice = require('../controllers/updateInvoice');
 const deleteInvoice = require('../controllers/deleteInvoice');
 const exportInvoiceReport = require('../controllers/exportInvoiceReport');
+const getInvoiceCount = require('../controllers/getInvoiceCount');
 
-router.post('/', createInvoice);
-router.get('/', getInvoices);
+router.post('/create', createInvoice);
+router.get('/get-all', getInvoices);
+router.get('/count', getInvoiceCount);
 router.get('/:id', getInvoiceById);
 router.put('/:id', updateInvoice);
 router.delete('/:id', deleteInvoice);

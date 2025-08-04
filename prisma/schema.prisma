@@ -37,7 +37,7 @@ model Product {
   imageUrl    String
   created_at  DateTime      @default(now())
   updated_at  DateTime      @updatedAt
-  InvouceItem InvouceItem[]
+  InvoiceItem InvoiceItem[]
   StockIn     StockIn[]
   StockOut    StockOut[]
 }
@@ -53,23 +53,23 @@ model Customer {
 }
 
 model Invoice {
-  id          String        @id @default(uuid())
-  invoiceCode String        @unique
-  customerId  String
-  userId      String
-  date        DateTime
-  total       Int
-  discount    Int
-  tax         Int
-  grandTotal  Int
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
-  customer    Customer      @relation(fields: [customerId], references: [id])
-  user        User          @relation(fields: [userId], references: [id])
-  InvouceItem InvouceItem[]
+  id           String        @id @default(uuid())
+  invoiceCode  String        @unique
+  customerId   String
+  userId       String
+  date         DateTime
+  total        Int
+  discount     Int?
+  tax          Int?
+  grandTotal   Int
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  InvoiceItems InvoiceItem[]
 }
 
-model InvouceItem {
+model InvoiceItem {
   id         String   @id @default(uuid())
   invoiceId  String
   productId  String

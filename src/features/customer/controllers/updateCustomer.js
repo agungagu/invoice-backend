@@ -8,6 +8,7 @@ module.exports = async (req, res) => {
     const existing = await prisma.customer.findUnique({ 
         where: { id } 
     });
+    
     if (!existing) {
       return res.status(404).json({ 
         success: false, 

@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
         include: {
           customer: true,
           user: true,
-          InvoiceItem: {
+          InvoiceItems: {
             include: { product: true }
           }
         },
